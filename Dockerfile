@@ -6,14 +6,15 @@ FROM maven:3.6.0-jdk-8-slim as build
 WORKDIR /cobbler-brother
 
 # 将src目录下所有文件，拷贝到工作目录中src目录下（.gitignore/.dockerignore中文件除外）
-COPY ./ /cobbler-brother/src
+COPY build /cobbler-brother/build
+COPY uploads /cobbler-brother/uploads
 
 # 将pom.xml文件，拷贝到工作目录下
-COPY settings.xml pom.xml /cobbler-brother/
+#COPY settings.xml pom.xml /cobbler-brother/
 
 # 执行代码编译命令
 # 自定义settings.xml, 选用国内镜像源以提高下载速度
-RUN mvn -s /cobbler-brother/settings.xml -f /cobbler-brother/order-start/pom.xml clean package
+#RUN mvn -s /cobbler-brother/settings.xml -f /cobbler-brother/order-start/pom.xml clean package
 
 # 选择运行时基础镜像
 FROM alpine:3.13
@@ -34,13 +35,14 @@ RUN apk add ca-certificates
 WORKDIR /cobbler-brother
 
 # 将构建产物jar包拷贝到运行时目录中
-COPY --from=build /cobbler-brother/order-start/target/*.jar .
+COPY --from=build /cobbler-brother/build/*.jar .
+COPY --from=build /cobbler-brother/uploads/* .
 
 # 暴露端口
 # 此处端口必须与「服务设置」-「流水线」以及「手动上传代码包」部署时填写的端口一致，否则会部署失败。
-EXPOSE 80
+EXPOSE 8080
 
 # 执行启动命令.
 # 写多行独立的CMD命令是错误写法！只有最后一行CMD命令会被执行，之前的都会被忽略，导致业务报错。
 # 请参考[Docker官方文档之CMD命令](https://docs.docker.com/engine/reference/builder/#cmd)
-CMD ["java", "-jar", "/cobbler-brother/order-start-1.0-SNAPSHOT.jar"]
+CMD ["java", "-jar", "/cobbler-brother/build/order-start-1.0-SNAPSHOT.jar"]
