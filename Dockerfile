@@ -6,7 +6,7 @@ FROM maven:3.6.0-jdk-8-slim as build
 WORKDIR /cobbler-brother
 
 # 将src目录下所有文件，拷贝到工作目录中src目录下（.gitignore/.dockerignore中文件除外）
-COPY ../cobbler-brother /cobbler-brother/src
+COPY ./ /cobbler-brother/src
 
 # 将pom.xml文件，拷贝到工作目录下
 COPY settings.xml pom.xml /cobbler-brother/
